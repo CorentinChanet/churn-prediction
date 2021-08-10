@@ -8,26 +8,26 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix
+from imblearn.ensemble import BalancedRandomForestClassifier
 import joblib
 
 from .preprocessing import balance_labels, get_data_target
 
 import numpy as np
-import pandas as pd
 
 
 
 classifiers = {
     "RandomForest": {'model':RandomForestClassifier(), 'params': {
-        'model__n_estimators': [100, 150, 200, 250],
+        'model__n_estimators': [100, 150, 200, 250, 500],
         'model__max_features': ['sqrt'],
-        'model__min_samples_split': [2,3,4,5,8,10,12]
+        'model__min_samples_split': [2,3,4,5,8,10,12, 20, 40]
         }},
 
-    "Logistic" : {'model':LogisticRegression(), 'params': {
-        'model__penalty': ["l2"],
-        'model__solver': ["lbfgs", "newton-cg", "saga", "sag", "liblinear"],
-        'model__max_iter' : [400]
+    "BalancedRandomForest" : {'model':BalancedRandomForestClassifier(), 'params': {
+        'model__n_estimators': [100, 150, 200, 250, 500],
+        'model__max_features': ['sqrt'],
+        'model__min_samples_split': [2,3,4,5,8,10,12, 20, 40]
         }},
 
     "KNN" : {'model':KNeighborsClassifier(), 'params': {

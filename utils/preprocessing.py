@@ -5,7 +5,8 @@ def load_data():
 
     df = pd.read_csv('./assets/BankChurners.csv')
     df.drop(['Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_1',
-         'Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2'],
+         'Naive_Bayes_Classifier_Attrition_Flag_Card_Category_Contacts_Count_12_mon_Dependent_count_Education_Level_Months_Inactive_12_mon_2',
+            'CLIENTNUM'],
         axis=1,
         inplace=True)
 
@@ -23,7 +24,7 @@ def balance_labels(df, random_state=42):
 
 def get_data_target(df):
     target = df['Attrition_Flag']
-    data = df.drop(['Attrition_Flag', 'CLIENTNUM'], axis=1)
+    data = df.drop(['Attrition_Flag'], axis=1)
     data = pd.get_dummies(data, drop_first=False)
 
     return data, target

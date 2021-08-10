@@ -7,6 +7,7 @@ import streamlit as st
 
 classifiers = {
     "RandomForest": {},
+    "BalancedRandomForest": {},
     "KNN": {}
 }
 
@@ -24,8 +25,8 @@ def _pickle_SHAP(name):
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
 
-    if name == "RandomForest":
-        explainer = shap.TreeExplainer(model)
+    if name in ["RandomForest", "BalancedRandomForest"]:
+        explainer = shap.TreeExplainer(model, X_train)
     else:
         explainer = shap.KernelExplainer(model.predict_proba, shap.kmeans(X_train, 3).data, l1_reg='num_features(10)')
         joblib.dump(explainer, './assets/KernelExplainerKNN.pkl')
@@ -42,8 +43,8 @@ def shap_decision_plot(name, seed):
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
 
-    if name == "RandomForest":
-        explainer = shap.TreeExplainer(model)
+    if name in ["RandomForest", "BalancedRandomForest"]:
+        explainer = shap.TreeExplainer(model, X_train)
     else:
         explainer = joblib.load('./assets/KernelExplainerKNN.pkl')
 
@@ -67,6 +68,8 @@ def shap_decision_plot(name, seed):
     plt.close()
 
     return fig_decision, match, index, y_test.loc[index], model.predict(sample)[0]
+
+
 
 
 @st.cache(max_entries=10, ttl=3600)
@@ -102,11 +105,10 @@ def plot_testing_set(name, index, features):
                                                   arrowhead=1)]
                              },
                       autosize=True,
-                      scene_camera_eye=dict(x=1.87, y=0.88, z=-0.64),
                       width=500, height=900,
                       margin=dict(l=20, r=20, b=50, t=20),
                       template='plotly_white',
-                      showlegend=False
+                      showlegend=True
                       )
 
     fig.update_layout(
@@ -128,11 +130,10 @@ def plot_3D(df, features):
     fig.update_layout(scene={"aspectratio": {"x": 3, "y": 4, "z": 3},
                              },
                       autosize=True,
-                      scene_camera_eye=dict(x=1.87, y=0.88, z=-0.64),
                       width=500, height=900,
                       margin=dict(l=20, r=20, b=50, t=20),
                       template='plotly_white',
-                      showlegend=False
+                      showlegend=True
                       )
 
     fig.update_layout(
@@ -154,11 +155,10 @@ def plot_3D_all(df, features):
     fig.update_layout(scene={"aspectratio": {"x": 3, "y": 4, "z": 3},
                              },
                       autosize=True,
-                      scene_camera_eye=dict(x=1.87, y=0.88, z=-0.64),
                       width=500, height=1000,
                       margin=dict(l=20, r=20, b=20, t=20),
                       template='plotly_white',
-                      showlegend=False
+                      showlegend=True
                       )
 
     fig.update_layout(
