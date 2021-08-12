@@ -1,6 +1,5 @@
 import joblib
 import shap
-from pycebox.ice import ice, ice_plot
 import numpy as np
 import plotly.express as px
 import matplotlib.pyplot as plt

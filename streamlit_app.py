@@ -3,7 +3,6 @@ from utils.processing import _clf_pipeline
 from utils.postprocessing import shap_decision_plot, get_confusion_mtx, plot_3D, get_corr, plot_testing_set, _pickle_SHAP, classifiers
 from utils.metric_style import metric_row, metric_row_custom, metric_row_report, metric
 import matplotlib.pyplot as plt
-import seaborn as sns
 import streamlit as st
 import pandas as pd
 
