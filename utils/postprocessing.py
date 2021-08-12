@@ -1,5 +1,6 @@
 import joblib
 import shap
+from pycebox.ice import ice, ice_plot
 import numpy as np
 import plotly.express as px
 import matplotlib.pyplot as plt
@@ -8,7 +9,8 @@ import streamlit as st
 classifiers = {
     "RandomForest": {},
     "BalancedRandomForest": {},
-    "KNN": {}
+    "KNN": {},
+    "LightGBM": {}
 }
 
 for name in classifiers.keys():
@@ -44,7 +46,7 @@ def shap_decision_plot(name, seed):
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
 
     if name in ["RandomForest", "BalancedRandomForest"]:
-        explainer = shap.TreeExplainer(model, X_train)
+        explainer = shap.TreeExplainer(model, X_train, model_output="raw")
     else:
         explainer = joblib.load('./assets/KernelExplainerKNN.pkl')
 
@@ -62,14 +64,12 @@ def shap_decision_plot(name, seed):
     shap_values = explainer.shap_values(sample)[0]
     expected_value = explainer.expected_value[0]
 
-    shap.decision_plot(expected_value, shap_values, sample, show=False)
+    shap.decision_plot(expected_value, shap_values, sample, new_base_value=0.5, show=False)
     fig_decision = plt.gcf()
     fig_decision.set_dpi(400)
     plt.close()
 
     return fig_decision, match, index, y_test.loc[index], model.predict(sample)[0]
-
-
 
 
 @st.cache(max_entries=10, ttl=3600)
@@ -105,7 +105,6 @@ def plot_testing_set(name, index, features):
                                                   arrowhead=1)]
                              },
                       autosize=True,
-                      width=500, height=900,
                       margin=dict(l=20, r=20, b=50, t=20),
                       template='plotly_white',
                       showlegend=True
@@ -130,7 +129,6 @@ def plot_3D(df, features):
     fig.update_layout(scene={"aspectratio": {"x": 3, "y": 4, "z": 3},
                              },
                       autosize=True,
-                      width=500, height=900,
                       margin=dict(l=20, r=20, b=50, t=20),
                       template='plotly_white',
                       showlegend=True
@@ -155,7 +153,6 @@ def plot_3D_all(df, features):
     fig.update_layout(scene={"aspectratio": {"x": 3, "y": 4, "z": 3},
                              },
                       autosize=True,
-                      width=500, height=1000,
                       margin=dict(l=20, r=20, b=20, t=20),
                       template='plotly_white',
                       showlegend=True

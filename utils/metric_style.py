@@ -28,7 +28,7 @@ def _build_metric(label, value, value_2='', color_label='black', color_value='bl
     
     .metric .label {
        letter-spacing: 2px;
-       font-size: 16px;
+       font-size: 15px;
        text-transform: uppercase;
        color: {{ color_label }};
     }

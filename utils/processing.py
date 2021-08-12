@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+from lightgbm import LGBMClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
@@ -34,7 +34,15 @@ classifiers = {
         'model__n_neighbors': [5, 10, 15, 20, 25, 30, 35, 40, 50, 55, 60, 65, 70],
         'model__weights': ["uniform", "distance"],
         'model__metric' : ["euclidean", "manhattan", "minkowski", "chebyshev"]
-        }}
+        }},
+
+    "LightGBM": {'model': LGBMClassifier(), 'params': {
+        'model__n_estimators': [1000],
+        'model__boosting_type': ["goss"],
+        'model__learning_rate': [0.1],
+        'model__min_child_samples': [10],
+        'model__scale_pos_weight': [0.05]
+    }}
 }
 
 
@@ -89,6 +97,3 @@ def _clf_pipeline(name, df, balance=True, n_repeat=1):
         joblib.dump(reports[-1], f'./assets/{name}_classification_report.pkl')
         joblib.dump(data.columns.to_list(), f'./assets/{name}_model_features.pkl')
         joblib.dump((X_train, X_test, y_train, y_test, y_predictions, y_proba), f'./assets/{name}_train_test_predict_proba.pkl')
-
-
-
