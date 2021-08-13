@@ -89,7 +89,7 @@ with expander_EDA:
     st.write("\n")
     metric_row_custom({
         "NaN Values": (0, '', 'black', 'black', 'black', '30px'),
-        "Features": (data.shape[1], '', 'black', 'black', 'black', '30px'),
+        "Features": (load_data().shape[1], '', 'black', 'black', 'black', '30px'),
         "Attrited Customers": (target.value_counts()[1], '', 'black', 'red', 'black', '30px'),
         "Remaining Customers": (target.value_counts()[0], '', 'black', 'blue', 'black', '30px')
     })
