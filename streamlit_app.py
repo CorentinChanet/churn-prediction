@@ -1,6 +1,6 @@
 from utils.preprocessing import load_data, balance_labels, get_data_target
 from utils.processing import _clf_pipeline
-from utils.postprocessing import shap_decision_plot, get_confusion_mtx, plot_3D, get_corr, plot_testing_set, _pickle_SHAP, classifiers
+
 from utils.metric_style import metric_row, metric_row_custom, metric_row_report, metric
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -9,10 +9,11 @@ import pandas as pd
 data, target = get_data_target(load_data())
 df = pd.concat([data, target], axis=1)
 
-#_clf_pipeline('RandomForest', df, balance=True, n_repeat=1)
-#_clf_pipeline('KNN', df, balance=True, n_repeat=1)
-#_clf_pipeline('BalancedRandomForest', df, balance=False, n_repeat=1)
-#_clf_pipeline('LightGBM', df, balance=False, n_repeat=1)
+# _clf_pipeline('RandomForest', df, balance=True, n_repeat=1)
+# _clf_pipeline('KNN', df, balance=True, n_repeat=1)
+# _clf_pipeline('BalancedRandomForest', df, balance=False, n_repeat=1)
+# _clf_pipeline('LightGBM', df, balance=False, n_repeat=1)
+
 
 _features = sorted(df.columns.to_list())
 
@@ -20,10 +21,11 @@ with st.sidebar:
     st.set_page_config(layout="wide", initial_sidebar_state='collapsed')
     st.sidebar.header('Algorithms')
     selection_strategy = st.selectbox('Please select an algorithm:',
-                                              ('RandomForest',
+                                              ('LightGBM',
+                                               'RandomForest',
                                                'BalancedRandomForest',
-                                               'KNN',
-                                               'LightGBM'))
+                                               'KNN'))
+
     st.markdown("""---""")
     if selection_strategy == 'KNN':
         st.markdown(f"""Neighbors-based classification is a type of instance-based learning 
@@ -55,18 +57,23 @@ with st.sidebar:
 
 mark = {True:"CORRECT", False:"WRONG"}
 
+from utils.postprocessing import shap_decision_plot, get_confusion_mtx, plot_3D, get_corr, plot_testing_set, _pickle_SHAP, classifiers
 
 corr_matrix = get_corr(df)
 
-#_pickle_SHAP('RandomForest')
-#_pickle_SHAP('KNN')
-#_pickle_SHAP('BalancedRandomForest')
-#_pickle_SHAP('LightGBM')
+#_pickle_SHAP('RandomForest', 'true_to_data')
+#_pickle_SHAP('RandomForest', 'true_to_model')
+#_pickle_SHAP('KNN', 'true_to_data')
+#_pickle_SHAP('KNN', 'true_to_model')
+# _pickle_SHAP('BalancedRandomForest', 'true_to_data')
+# _pickle_SHAP('BalancedRandomForest', 'true_to_model')
+# _pickle_SHAP('LightGBM', 'true_to_data')
+# _pickle_SHAP('LightGBM', 'true_to_model')
 
-metric('Corentin Chanet - becode.org 2021', "Explainable AI for Churn Prediction")
+metric('© 2021 AIXP', "Explainable AI for Churn Prediction")
 
-st.markdown("Challenge statement and dataset available on <a href=https://www.kaggle.com/sakshigoyal7/credit-card-customers>Kaggle</a>", unsafe_allow_html=True)
-st.markdown("Code available on <a href=https://github.com/CorentinChanet/churn-prediction>GitHub</a>", unsafe_allow_html=True)
+#st.markdown("Challenge statement and dataset available on <a href=https://www.kaggle.com/sakshigoyal7/credit-card-customers>Kaggle</a>", unsafe_allow_html=True)
+#st.markdown("Code available on <a href=https://github.com/CorentinChanet/churn-prediction>GitHub</a>", unsafe_allow_html=True)
 
 expander_EDA = st.expander("Exploratory Data Analysis", expanded=False)
 
@@ -87,47 +94,27 @@ with expander_EDA:
         "Remaining Customers": (target.value_counts()[0], '', 'black', 'blue', 'black', '30px')
     })
 
-    margin_1_left, clean_table, margin_1_right = st.columns((0.1, 1, 0.1))
-
-    with clean_table:
-        if st.checkbox("Show Dataframe", key='cleaned_dataframe'):
-            st.dataframe(data)
-        st.subheader(f"Features dataset after cleaning, One Hot Encoding and manual undersampling")
-
-    data, target = get_data_target(balance_labels(df.copy()))
-
-    st.write("\n")
-    metric_row_custom({
-        "NaN Values": (0, '', 'black', 'black', 'black', '30px'),
-        "Features": (data.shape[1], '', 'black', 'black', 'black', '30px'),
-        "Attrited Customers": (target.value_counts()[1], '', 'black', 'red', 'black', '30px'),
-        "Remaining Customers": (target.value_counts()[0], '', 'black', 'blue', 'black', '30px')
-    })
-
-    row_eda_feature_x, row_eda_feature_y, row_eda_feature_z = st.columns((1, 1, 1))
-    with row_eda_feature_x:
+    row_eda_features, row_eda_plot = st.columns((1, 3))
+    with row_eda_features:
+        st.write('\n')
+        st.write('\n')
         selection_x = st.selectbox('Please select a feature for the X axis:',
-                                   _features, index=len(_features) - 4, key='selection_x_eda')
-    with row_eda_feature_y:
+                                   _features, index=7, key='selection_x_eda')
+
         selection_y = st.selectbox('Please select a feature for the Y axis:',
                                    _features, index=len(_features) - 2, key='selection_y_eda')
-    with row_eda_feature_z:
+
         selection_z = st.selectbox('Please select a feature for the Z axis:',
                                    _features, index=len(_features) - 1, key='selection_z_eda')
 
-    st.write('\n')
     features = selection_x, selection_y, selection_z
     confusion_matrix = get_confusion_mtx(selection_strategy)
     scatter_3D_balanced = plot_3D(balance_labels(df), features)
     scatter_3D_dataset = plot_3D(df, features)
 
-    row_0_left, row_0_margin, row_0_right = st.columns((1, 0.1, 1))
+    row_0_left, row_0_margin, row_0_right = st.columns((0.1, 1, 0.1))
 
-    with row_0_left:
-        st.subheader(f'3D Plot of manually balanced dataset')
-        st.plotly_chart(scatter_3D_balanced, use_container_width=True)
-
-    with row_0_right:
+    with row_eda_plot:
         st.subheader(f'3D Plot of entire unbalanced dataset')
         st.plotly_chart(scatter_3D_dataset, use_container_width=True)
 
@@ -217,11 +204,14 @@ with expander_classification:
 
     if st.checkbox("Show SHAP diagnostics"):
 
+        selection_shap_approach = st.selectbox('Please select a SHAP approach',
+                                               ('true_to_model', 'true_to_data'))
+
         row_2_left, row_2_margin, row_2_right = st.columns((1, 0.1, 1))
 
         with row_2_left:
             st.subheader(f"SHAP summary plot \n Training Set's Features Importances")
-            st.image(f'./assets/{selection_strategy}_shap_summary.png')
+            st.image(f'./assets/{selection_strategy}_shap_summary_{selection_shap_approach}.png')
 
         with row_2_right:
             st.subheader(f"A brief explanation")
@@ -248,7 +238,7 @@ with expander_classification:
         row_class_feature_x, row_class_feature_y, row_class_feature_z = st.columns((1, 1, 1))
         with row_class_feature_x:
             selection_x = st.selectbox('Please select a feature for the X axis:',
-                                       _features, index=len(_features) - 4, key='selection_x_clf')
+                                       _features, index=7, key='selection_x_clf')
         with row_class_feature_y:
             selection_y = st.selectbox('Please select a feature for the Y axis:',
                                        _features, index=len(_features) - 2, key='selection_y_clf')
@@ -260,10 +250,10 @@ with expander_classification:
         row_3_left, row_3_margin, row_3_right = st.columns((1, 0.1, 1))
 
         with row_3_left:
-            st.subheader(f'3D Plot of the Testing Set')
-            selection_seed = st.slider("Pick a sample", 0, 100, 42)
-            decision_plot, match, index, true_y, predict_y = shap_decision_plot(selection_strategy, selection_seed)
-            scatter_3D_testing_set = plot_testing_set(selection_strategy, index, features)
+            st.subheader(f'3D Plot')
+            selection_seed = st.slider("Pick a sample", 0, 100, 39)
+            decision_plot, match, index, true_y, predict_y = shap_decision_plot(selection_strategy, selection_seed, selection_shap_approach)
+            scatter_3D_testing_set = plot_testing_set(selection_strategy, index, features, df)
             st.plotly_chart(scatter_3D_testing_set, use_container_width=True)
 
         with row_3_right:

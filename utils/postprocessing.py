@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import matplotlib.pyplot as plt
 import streamlit as st
+import pandas as pd
 
 classifiers = {
     "RandomForest": {},
@@ -19,15 +20,21 @@ for name in classifiers.keys():
     classifiers[name]['classification_report'] = joblib.load(f'./assets/{name}_classification_report.pkl')
     classifiers[name]['model_features'] = joblib.load(f'./assets/{name}_model_features.pkl')
     classifiers[name]['train_test_predict_proba'] = joblib.load(f'./assets/{name}_train_test_predict_proba.pkl')
+    classifiers[name]['scaler'] = joblib.load(f'./assets/{name}_scaler.pkl')
 
-
-def _pickle_SHAP(name):
+def _pickle_SHAP(name, approach):
 
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
+    scaler = classifiers[name]['scaler']
 
-    if name in ["RandomForest", "BalancedRandomForest"]:
-        explainer = shap.TreeExplainer(model, X_train)
+    X_train = scaler.transform(X_train)
+
+    if name in ["RandomForest", "BalancedRandomForest", "LightGBM"]:
+        if approach is ['true_to_model']:
+            explainer = shap.TreeExplainer(model, X_train, feature_perturbation='interventional')
+        else:
+            explainer = shap.TreeExplainer(model, feature_perturbation='tree_path_dependent')
     else:
         explainer = shap.KernelExplainer(model.predict_proba, shap.kmeans(X_train, 3).data, l1_reg='num_features(10)')
         joblib.dump(explainer, './assets/KernelExplainerKNN.pkl')
@@ -36,24 +43,35 @@ def _pickle_SHAP(name):
 
     f = plt.figure()
     shap.summary_plot(shap_values[0], X_test, show=False)
-    f.savefig(f"./assets/{name}_shap_summary.png", bbox_inches='tight', dpi=600)
+    f.savefig(f"./assets/{name}_shap_summary_{approach}.png", bbox_inches='tight', dpi=600)
     plt.close()
 
 
-def shap_decision_plot(name, seed):
+def shap_decision_plot(name, seed, approach):
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
+    scaler = classifiers[name]['scaler']
 
-    if name in ["RandomForest", "BalancedRandomForest"]:
-        explainer = shap.TreeExplainer(model, X_train, model_output="raw")
+    X_train = scaler.transform(X_train)
+
+    if name in ["RandomForest", "BalancedRandomForest", "LightGBM"]:
+        if approach is ['true_to_model']:
+            explainer = shap.TreeExplainer(model, X_train, feature_perturbation='interventional', model_output='predict_proba')
+        else:
+            explainer = shap.TreeExplainer(model, feature_perturbation='tree_path_dependent', model_output='raw')
+
     else:
         explainer = joblib.load('./assets/KernelExplainerKNN.pkl')
+
+    feature_names = classifiers[name]['model_features']
 
     X_test.reset_index(inplace=True, drop=True)
     y_test.reset_index(inplace=True, drop=True)
 
     sample = X_test.sample(1, random_state=seed)
     index = sample.index[0]
+
+    sample = scaler.transform(sample)
 
     if np.all(model.predict(sample)[0] == y_test.loc[index]):
         match = True
@@ -63,7 +81,7 @@ def shap_decision_plot(name, seed):
     shap_values = explainer.shap_values(sample)[0]
     expected_value = explainer.expected_value[0]
 
-    shap.decision_plot(expected_value, shap_values, sample, new_base_value=0.5, show=False)
+    shap.decision_plot(expected_value, shap_values, sample, new_base_value=0.5, feature_names=feature_names, show=False)
     fig_decision = plt.gcf()
     fig_decision.set_dpi(400)
     plt.close()
@@ -78,14 +96,14 @@ def get_confusion_mtx(name):
     return confusion_matrix
 
 @st.cache(max_entries=10, ttl=3600)
-def plot_testing_set(name, index, features):
+def plot_testing_set(name, index, features, df):
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
 
     X_test.reset_index(inplace=True, drop=True)
     y_test.reset_index(inplace=True, drop=True)
 
-    fig = px.scatter_3d(X_test, x=features[0], y=features[1], z=features[2],
-                        color=y_test, color_discrete_map={'Attrited Customer':'red',
+    fig = px.scatter_3d(df, x=features[0], y=features[1], z=features[2],
+                        color=df['Attrition_Flag'], color_discrete_map={'Attrited Customer':'red',
                                                                     'Existing Customer':'blue'})
 
     fig.update_layout(scene={"aspectratio": {"x": 3, "y": 4, "z": 3},

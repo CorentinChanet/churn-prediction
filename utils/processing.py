@@ -52,6 +52,7 @@ def _clf_pipeline(name, df, balance=True, n_repeat=1):
     reports = []
     models = []
     confusion_matrices = []
+    export_scalers = []
 
     seeds = np.random.randint(0,1000, n_repeat)
 
@@ -67,6 +68,9 @@ def _clf_pipeline(name, df, balance=True, n_repeat=1):
         X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.25, stratify=target)
 
         scaler = MinMaxScaler()
+
+        export_scaler = MinMaxScaler().fit(X_train, y_train)
+        export_scalers.append(export_scaler)
 
         if name not in classifiers.keys():
             name = "RandomForest"
@@ -91,6 +95,7 @@ def _clf_pipeline(name, df, balance=True, n_repeat=1):
         confusion_matrices.append(confusion_matrix(y_test, y_predictions))
         models.append(search)
 
+        joblib.dump(export_scalers[-1], f'./assets/{name}_scaler.pkl')
         joblib.dump(models[-1], f'./assets/{name}_gridsearch.pkl')
         joblib.dump(scores[-1], f'./assets/{name}_score.pkl')
         joblib.dump(confusion_matrices[-1], f'./assets/{name}_confusion_matrix.pkl')
