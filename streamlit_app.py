@@ -109,7 +109,6 @@ with expander_EDA:
 
     features = selection_x, selection_y, selection_z
     confusion_matrix = get_confusion_mtx(selection_strategy)
-    scatter_3D_balanced = plot_3D(balance_labels(df), features)
     scatter_3D_dataset = plot_3D(df, features)
 
     row_0_left, row_0_margin, row_0_right = st.columns((0.1, 1, 0.1))
@@ -237,23 +236,23 @@ with expander_classification:
         st.write('\n')
         row_class_feature_x, row_class_feature_y, row_class_feature_z = st.columns((1, 1, 1))
         with row_class_feature_x:
-            selection_x = st.selectbox('Please select a feature for the X axis:',
+            selection_x_clf = st.selectbox('Please select a feature for the X axis:',
                                        _features, index=7, key='selection_x_clf')
         with row_class_feature_y:
-            selection_y = st.selectbox('Please select a feature for the Y axis:',
+            selection_y_clf = st.selectbox('Please select a feature for the Y axis:',
                                        _features, index=len(_features) - 2, key='selection_y_clf')
         with row_class_feature_z:
-            selection_z = st.selectbox('Please select a feature for the Z axis:',
+            selection_z_clf = st.selectbox('Please select a feature for the Z axis:',
                                        _features, index=len(_features) - 1, key='selection_z_clf')
 
-
+        features_clf = (selection_x_clf, selection_y_clf, selection_z_clf)
         row_3_left, row_3_margin, row_3_right = st.columns((1, 0.1, 1))
 
         with row_3_left:
             st.subheader(f'3D Plot')
             selection_seed = st.slider("Pick a sample", 0, 100, 39)
             decision_plot, match, index, true_y, predict_y = shap_decision_plot(selection_strategy, selection_seed, selection_shap_approach)
-            scatter_3D_testing_set = plot_testing_set(selection_strategy, index, features, df)
+            scatter_3D_testing_set = plot_testing_set(selection_strategy, index, features_clf, df)
             st.plotly_chart(scatter_3D_testing_set, use_container_width=True)
 
         with row_3_right:
