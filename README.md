@@ -5,7 +5,7 @@
 
 </div>
 
-# Churn prediction
+# Explainable AI for Churn Prediction
 
 This project was part of Becode AI Bootcamp
 
