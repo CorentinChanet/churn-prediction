@@ -22,7 +22,7 @@ for name in classifiers.keys():
     classifiers[name]['train_test_predict_proba'] = joblib.load(f'./assets/{name}_train_test_predict_proba.pkl')
     classifiers[name]['scaler'] = joblib.load(f'./assets/{name}_scaler.pkl')
 
-def _pickle_SHAP(name, approach):
+def _pickle_SHAP(name:str, approach:str):
 
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
@@ -47,7 +47,7 @@ def _pickle_SHAP(name, approach):
     plt.close()
 
 
-def shap_decision_plot(name, seed, approach):
+def shap_decision_plot(name:str, seed:int, approach:str) -> tuple:
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
     model = classifiers[name]['gridsearch'].best_estimator_.named_steps['model']
     scaler = classifiers[name]['scaler']
@@ -90,13 +90,13 @@ def shap_decision_plot(name, seed, approach):
 
 
 @st.cache(max_entries=10, ttl=3600)
-def get_confusion_mtx(name):
+def get_confusion_mtx(name:str):
 
     confusion_matrix = classifiers[name]['confusion_matrix']
     return confusion_matrix
 
 @st.cache(max_entries=10, ttl=3600)
-def plot_testing_set(name, index, features, df):
+def plot_testing_set(name:str, index:int, features:list, df):
     X_train, X_test, y_train, y_test, y_predictions, y_proba = classifiers[name]['train_test_predict_proba']
 
     X_test.reset_index(inplace=True, drop=True)
@@ -136,7 +136,7 @@ def plot_testing_set(name, index, features, df):
     return fig
 
 @st.cache(max_entries=10, ttl=3600)
-def plot_3D(df, features):
+def plot_3D(df, features:list):
 
 
     fig = px.scatter_3d(df, x=features[0], y=features[1], z=features[2],
@@ -161,7 +161,7 @@ def plot_3D(df, features):
 
 
 @st.cache(max_entries=10, ttl=3600)
-def plot_3D_all(df, features):
+def plot_3D_all(df, features:list):
 
     fig = px.scatter_3d(df, x=features[0], y=features[1], z=features[2],
                         color='Attrition_Flag', color_discrete_map={'Attrited Customer':'red',

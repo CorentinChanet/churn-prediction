@@ -46,7 +46,7 @@ classifiers = {
 }
 
 
-def _clf_pipeline(name, df, balance=True, n_repeat=1):
+def _clf_pipeline(name:str, df, balance=True, n_repeat=1):
 
     scores = []
     reports = []
